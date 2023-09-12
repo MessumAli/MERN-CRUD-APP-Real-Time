@@ -2,8 +2,11 @@ import React, { useState } from 'react'
 import { useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
+import { io } from "socket.io-client";
 
 export default function UpdateUser() {
+
+  const socket = io("http://localhost:4000");
 
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -70,12 +73,12 @@ export default function UpdateUser() {
       { notify() }
     }
     if (response.ok) {
+      socket.emit("singleUserUpdated", result);
       console.log(result)
       setError('')
       navigate('/')
     }
   }
-
 
   return (
     <div className='container my-2'>

@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { io } from "socket.io-client";
 
 export default function AllUser() {
 
+  const socket = io("http://localhost:4000");
+
   const [allUser, setAllUser] = useState()
   const [error, setError] = useState("")
-
 
   const getAllUser = async () => {
 
@@ -22,6 +24,25 @@ export default function AllUser() {
 
   useEffect(() => {
     getAllUser()
+
+    socket.on("userUpdated", (data) => {
+      setAllUser((prevUsers) => [...prevUsers, data]);
+    });
+
+    socket.on("userDataUpdated", (data) => {
+      setAllUser((prevUsers) => prevUsers.map(user => user._id === data._id ? data : user));
+    });
+
+    socket.on("userDeleted", (id) => {
+      getAllUser()
+
+    });
+
+    return () => {
+      socket.off("userUpdated");
+      socket.off("userDataUpdated");
+      socket.off("userDeleted");
+    };
   }, [])
 
   const handleDelete = async (id) => {
@@ -35,6 +56,7 @@ export default function AllUser() {
     }
     if (response.ok) {
       getAllUser()
+      socket.emit("deleteUser", id);
     }
   }
 
